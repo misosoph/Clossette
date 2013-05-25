@@ -1,129 +1,68 @@
 package com.closette;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import android.os.Bundle;
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.view.Menu;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
+import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Gallery;
+import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ImageView.ScaleType;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class ClosetteMain extends Activity {
 
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.closette_main, menu);
-        return true;
-    }
-    
-
-    private ImageView selectedImageView;
-
-    private ImageView leftArrowImageView;
-
-    private ImageView rightArrowImageView;
-
-    private Gallery topgallery;
-    private Gallery bottomgallery;
-
-    private int selectedImagePosition = 0;
-
-    private List<Drawable> drawables;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_closette_main);
+        
+        final LinearLayout topGallery = (LinearLayout) findViewById(R.id.topgallery);
+        String galleryDirectoryName = "tops";
+        populateGallery(topGallery, galleryDirectoryName);
+        final LinearLayout bottomGallery = (LinearLayout) findViewById(R.id.bottomgallery);
+        galleryDirectoryName = "bottoms";
+        populateGallery(bottomGallery, galleryDirectoryName);
 
-        getDrawablesList();
-        setupUI();
+
+
     }
 
-    private void setupUI() {
+	private void populateGallery(final LinearLayout topGallery, String galleryDirectoryName) {
+		try {
+            String[] listImages = getAssets().list(galleryDirectoryName);
+            for (String imageName : listImages) {
+                InputStream is = getAssets().open(galleryDirectoryName + "/" + imageName);
+                final Bitmap bitmap = BitmapFactory.decodeStream(is);
 
-        topgallery = (Gallery) findViewById(R.id.TopGallery);
-        bottomgallery = (Gallery) findViewById(R.id.BottomGallery);
+                ImageView imageView = new ImageView(getApplicationContext());
+                int picSize = (getWindowManager().getDefaultDisplay().getHeight()-150)/2;
+                //int picSize = findViewById(R.id.mainview).getHeight()/2;
+                imageView.setLayoutParams(new ViewGroup.LayoutParams(picSize, picSize));
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                imageView.setImageBitmap(bitmap);
+                imageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //diplayImage.setImageBitmap(bitmap);
+                    }
+                });
 
-  
-
-        topgallery.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-
-                selectedImagePosition = pos;
-
- 
-
-                changeBorderForSelectedImage(selectedImagePosition);
-                setSelectedImage(selectedImagePosition);
+                topGallery.addView(imageView);
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-
-            }
-
-        });
-
-//        galImageAdapter = new GalleryImageAdapter(this, drawables);
-//
-//        topgallery.setAdapter(galImageAdapter);
-
-        if (drawables.size() > 0) {
-
-            topgallery.setSelection(selectedImagePosition, false);
-
+            
+            
+        } catch (IOException e) {
+            Log.e("GalleryWithHorizontalScrollView", e.getMessage(), e);
         }
+	}
 
-//        if (drawables.size() == 1) {
-//
-//            rightArrowImageView.setImageDrawable(getResources().getDrawable(R.drawable.arrow_right_disabled));
-//        }
-
-    }
-
-    private void changeBorderForSelectedImage(int selectedItemPos) {
-
-//        int count = topgallery.getChildCount();
-//
-//        for (int i = 0; i < count; i++) {
-//
-//            ImageView imageView = (ImageView) topgallery.getChildAt(i);
-//            imageView.setBackgroundDrawable(getResources().getDrawable(R.drawable.image_border));
-//            imageView.setPadding(3, 3, 3, 3);
-//
-//        }
-//
-//        ImageView imageView = (ImageView) gallery.getSelectedView();
-//        imageView.setBackgroundDrawable(getResources().getDrawable(R.drawable.selected_image_border));
-//        imageView.setPadding(3, 3, 3, 3);
-    
-    }
-    
-
-    private void getDrawablesList() {
-
-        drawables = new ArrayList<Drawable>();
-        drawables.add(getResources().getDrawable(R.drawable.skirt1));
-        drawables.add(getResources().getDrawable(R.drawable.skirt2));
-
-    }
-
-    private void setSelectedImage(int selectedImagePosition) {
-
-        BitmapDrawable bd = (BitmapDrawable) drawables.get(selectedImagePosition);
-        Bitmap b = Bitmap.createScaledBitmap(bd.getBitmap(), (int) (bd.getIntrinsicHeight() * 0.9), (int) (bd.getIntrinsicWidth() * 0.7), false);
-        selectedImageView.setImageBitmap(b);
-        selectedImageView.setScaleType(ScaleType.FIT_XY);
-
-    }
 }
